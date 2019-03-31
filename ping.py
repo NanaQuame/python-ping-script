@@ -7,7 +7,7 @@ import time
 #time in seconds
 sTime = 60 
 
-website = "pifive"
+website = "www.google.com"
 
 #ping count for unix systems
 num = '4' 
