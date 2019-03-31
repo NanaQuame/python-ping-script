@@ -7,7 +7,7 @@ import time
 #time in seconds
 sTime = 60 
 
-website = "www.google.com"
+website = raw_input("Enter website/IP address/hostname to ping ... ")
 
 #ping count for unix systems
 num = '4' 
@@ -26,12 +26,12 @@ print("pinging " + website +  "\n")
 while True:
     #if the variable os returns Windows, execute the windows_ping command
     #stdout and stderr redirects data from the ping process to variables output and error respectively
-    if os == "Windows" or os =="win32":
+    if os == "Windows" or os == "win32":
         ping = subprocess.Popen (
         windows_ping, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
         
     #if os returns Linux or Darwin, execute the unix_ping command
-    if os == "linux" or os == "Linux" or os == "Darwin":
+    if os == "linux" or os == "linux2" or os == "Darwin":
         ping = subprocess.Popen (
         unix_ping, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
         
@@ -54,7 +54,7 @@ while True:
     #variable to retrieve current date and time
     now = datetime.datetime.now()
 
-    sFile.write("\n Pinging 8.8.8.8 on " + os + "\n")
+    sFile.write("\n Pinging " + website + " on " + os + "\n")
     sFile.write(now.strftime("%Y-%m-%d %H:%M:%S" "\n"))
     
     #write output retrieved from subprocess to file
@@ -67,7 +67,3 @@ while True:
     #snooze time until ping command runs again
     time.sleep(sTime)
     
-    
-    
-
-
