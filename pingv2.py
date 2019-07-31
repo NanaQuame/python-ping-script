@@ -44,7 +44,7 @@ while True:
                 print("Unknown operatint system")
                 sys.exit()
 
-            ping = subprocess.Popen (pingResults, stdout =          subprocess.PIPE,
+            ping = subprocess.Popen (pingResults, stdout = subprocess.PIPE,
                                      stderr = subprocess.PIPE)
 
             ping.wait()
