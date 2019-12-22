@@ -17,7 +17,7 @@ from absl import flags
 
 FLAGS = flags.FLAGS
 
-flags.DEFINE_string('host', 'google.com', 'Website to ping')
+flags.DEFINE_string('host', None, 'Website to ping')
 flags.DEFINE_integer('count', 4, 'number of icmp packets to send')
 flags.DEFINE_string('report', None, 'location to store ping result')
 
@@ -127,6 +127,9 @@ def main(argv):
       SystemExit(1)
 
     core.Executor(report, success_output, error_output)
+
+# TODO (nanaquame) Leverage speedtest-cli into this script
+# TODO (nanaquame) Implement nmap-cli for additional functionality
 
 if __name__ == "__main__":
     app.run(main)
