@@ -7,6 +7,7 @@ from __future__ import division
 
 import json
 import logging
+import oses
 import os
 import subprocess
 import sys
@@ -25,27 +26,28 @@ flags.mark_flag_as_required('host')
 
 class Error(Exception):
   """Container class for exception in this module."""
-  pass
 
 
 class FileError(Exception):
-  """Error storing output to provided path"""
-  pass
+  """Error storing output to provided path."""
 
 
 class RpcError(Exception):
-  """Error sending/receiving RPC Stream information"""
-  pass
+  """Error sending/receiving RPC Stream information."""
 
 
 def os_finder():
-  """Check what operating system this script is running on."""
-  try:
-   os_type = sys.platform
-  except ValueError as error_message:
-      logging.error('Not able to determine OS: %s' %error_message)
+  """Check for which operating system this script is running on."""
+  os_check = sys.platform
 
-  return os_type
+  if not os_check or (os_check == None):
+    raise ValueError('Unknown OS Type returned.')
+  
+  elif os_check in oses.os_list:
+      return os_check
+  
+  else:
+    raise ValueError('Incompatible Operating Sytems: %s', os_check)
 
 
 def countdown_timer():
@@ -60,55 +62,62 @@ def countdown_timer():
 class ping_script:
   """Based on os, host, count and other parameters, execute the ping script"""
   def __init__(self):
-    self.host = FLAGS.host
-    self.count = FLAGS.count
-    self.report = FLAGS.report
+    pass
 
   def ping_command(self):
     """Run os_finder function to find out specific os and run command"""
     os_result = os_finder()
+
+    if not os_result:
+      raise ValueError('No Operating System Found')
+
     if os_result.startswith(('linux2', 'linux', 'Linux', 'Darwin')):
-      logging.info('Executing script on a Linux Workstation')
-      pingResult = ['ping', self.host, "-c", "{}".format(self.count)]
+      logging.info('Executing script on a Unix system')
+      pingResult = ['ping', FLAGS.host, "-c", "{}".format(FLAGS.count)]
 
-    elif os_result.startswith(('Windows', 'Win32')):
-      logging.info('Executing script on Windows Rig')
-      pingResult = ['ping' + self.host]
-
-    else:
-      logging.error('OS Not Found')
-      SystemExit(0)
+    if os_result.startswith(('Windows', 'Win32')):
+      logging.info('Executing script on Windows sys')
+      pingResult = ['ping' + FLAGS.host]
 
     ping_execute = subprocess.Popen(pingResult, stdout=subprocess.PIPE,
                                     stderr=subprocess.PIPE)
     
-    success_output = (ping_execute.stdout.read().decode("utf-8"))
+    success_output = ping_execute.stdout.read().decode("utf-8")
     error_output = ping_execute.stderr.read().decode("utf-8")
 
-    return success_output, error_output
+    if not success_output or error_output:
+      logging.fatal('Verify network connectivity and ensure host provided is valid')
+      SystemExit(1)
+    else:
+      return success_output, error_output
+
+  def WriteReport(self, open_lib, success_output, error_output):
+    report = FLAGS.report
+    logging.info('Writing report to %s...',report)
+    try:
+      with open_lib(report, 'a') as filer:
+        if success_output:
+          filer.write(success_output)
+        if error_output:
+          filer.write(error_output)
+
+    except FileNotFoundError as error_message:
+      logging.error('Unable to write to report: %s', error_message)
+    except IsADirectoryError as error_message:
+      logging.error('Invalid file location: %s', error_message)
+    # TODO (nanaquame) Implement continuation mechanism if file location not found by printing
+    # to STDOUT instead of exiting program.
 
 
-  def Executor(self, report, success_output, error_output, open_lib=open):
+  def Executor(self, open_lib, success_output, error_output, report=True):
+    """call all other functions in the script."""
+    FLAGS(sys.argv)
     if FLAGS.report:
-      report = FLAGS.report
-      logging.info('Writing report to %s...', report)
+      core = ping_script()
+      core.WriteReport(open, success_output, error_output)
 
-      try:
-        with open_lib(report, 'a') as filer:
-          if success_output:
-            filer.write(success_output)
-          if error_output:
-            filer.write(error_output)
-
-      except FileNotFoundError as error_message:
-        logging.error('file not found: %s', error_message)
-      except IsADirectoryError as error_message:
-        logging.error('Invalid file location: %s', error_message)
-      # TODO (nanaquame) Implement continuation mechanism if file location not found by printing
-      # to STDOUT instead of exiting program.
-
-    if not report:
-      logging.info('Writing report to your stdout...')
+    else:
+      logging.info('Writing report to stdout...')
       if success_output:
         sys.stdout.write(success_output)
       if error_output:
@@ -117,19 +126,15 @@ class ping_script:
 
 def main(argv):
   if FLAGS.host:
-    report = FLAGS.report
     core = ping_script()
-
     success_output, error_output = core.ping_command()
 
-    if not success_output or error_output:
-      logging.fatal('No value returned from ping outputs')
-      SystemExit(1)
-
-    core.Executor(report, success_output, error_output)
+    core.Executor(open, success_output, error_output)
+    logging.info('End of Script.')
 
 # TODO (nanaquame) Leverage speedtest-cli into this script
 # TODO (nanaquame) Implement nmap-cli for additional functionality
+# TODO (nanaquame) Add inetutils capabilities like traceroute and others
 
 if __name__ == "__main__":
     app.run(main)
