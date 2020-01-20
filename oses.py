@@ -14,16 +14,14 @@ os_samples = {
             'OpenBSD 6' : 'openbsd6'
             }
 
-
-
 os_list = []
 
 def checklist(os_samples):
   for items in os_samples.values():
-    if (type(items)) == list:
+    if (type(items)) is list:
         for things in items:
           os_list.append(things)
-    if (type(items)) == str:
+    if (type(items)) is str:
           os_list.append(items)
 
 
