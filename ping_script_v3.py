@@ -73,7 +73,7 @@ class ping_script:
 
     if os_result.startswith(('Windows', 'Win32')):
       logging.info('Executing script on Windows sys')
-      pingResult = ['ping' + host]
+      pingResult = ["ping", "-n", "1", "-l", "1", "-w", str(count)]
 
     ping_execute = subprocess.Popen(pingResult, stdout=subprocess.PIPE,
                                     stderr=subprocess.PIPE)
@@ -103,11 +103,11 @@ class ping_script:
       logging.info('report write complete...')
 
     except FileNotFoundError as error_message:
-      raise FileNotFoundError('Unable to write to report: %s', error_message)
+      raise FileError('Unable to write to report: %s', error_message)
     except IsADirectoryError as error_message:
-      raise IsADirectoryError('Invalid file location: %s', error_message)
+      raise FileError('Invalid file location: %s', error_message)
     except PermissionError:
-      raise PermissionError('No permissions to access this file...')
+      raise FileError('No permissions to access this file...')
     # TODO (nanaquame) Implement continuation mechanism if file location not found by printing
     # to STDOUT instead of exiting program.
 
@@ -133,8 +133,7 @@ def main(argv):
   success_output, error_output = core.ping_command(FLAGS.host, FLAGS.count)
 
   core.Executor(success_output, error_output, FLAGS.report)
-    
-# TODO (nanaquame) Leverage speedtest-cli into this script
+
 # TODO (nanaquame) Implement nmap-cli for additional functionality
 # TODO (nanaquame) Add inetutils capabilities like traceroute and others
 

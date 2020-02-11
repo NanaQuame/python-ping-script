@@ -6,6 +6,7 @@ from __future__ import absolute_import
 from absl import app
 from absl import flags
 from absl.testing import flagsaver
+from parameterized import parameterized
 
 from pyfakefs import fake_filesystem as fake_fs
 from pyunitreport import HTMLTestRunner
@@ -23,7 +24,7 @@ import unittest
 
 FLAGS = flags.FLAGS
 FLAGS.host = 'google.com'
-FLAGS.report = ('/home/nanaquame/Desktop/coding/ping_dir/'
+report = ('/home/nanaquame/Desktop/coding/ping_dir/'
                     'python-ping-script/mock_data/test_file')
 
 class testPingScript(unittest.TestCase):
@@ -52,16 +53,6 @@ class testPingScript(unittest.TestCase):
     with self.assertRaises(ValueError):
       ping_script_v3.os_finder()
 
-  @flagsaver.flagsaver(host='apple.com')
-  @mock.patch.object(ping_script_v3, 'os_finder', autospec=True)
-  def testPingCommandLinuxCheck(self, mock_os_finder):
-    mock_os_finder.return_value = 'linux'
-    core = ping_script_v3.ping_script()
-    ping_result = core.ping_command(self.host, self.count)
-
-    self.assertIn('ping', ping_result[0])
-    self.assertTrue(mock_os_finder.called)
-
   def testPingCommandWrongHostFormat(self):
     core = ping_script_v3.ping_script()
     with self.assertRaises(ping_script_v3.UnknownRequest):
@@ -75,7 +66,7 @@ class testPingScript(unittest.TestCase):
     core = ping_script_v3.ping_script()
 
     success_output, error_output = core.ping_command(self.host, self.count)
-    with self.assertRaises(PermissionError):
+    with self.assertRaises(ping_script_v3.FileError):
       core.WriteReport(self.fs_open, success_output, error_output, 
                       report_file)
     self.assertTrue(mock_file_open.called)
@@ -88,7 +79,7 @@ class testPingScript(unittest.TestCase):
     core = ping_script_v3.ping_script()
 
     success_output, error_output = core.ping_command(self.host, self.count)
-    with self.assertRaises(FileNotFoundError):
+    with self.assertRaises(ping_script_v3.FileError):
       core.WriteReport(self.fs_open, success_output, error_output, 
                       report_file)
       self.assertTrue(mock_file_open.called)
@@ -101,7 +92,7 @@ class testPingScript(unittest.TestCase):
     core = ping_script_v3.ping_script()
 
     success_output, error_output = core.ping_command(self.host, self.count)
-    with self.assertRaises(IsADirectoryError):
+    with self.assertRaises(ping_script_v3.FileError):
       core.WriteReport(self.fs_open, success_output, error_output, 
                       report_file)
     self.assertTrue(mock_file_open.called)
@@ -124,6 +115,19 @@ class testPingScript(unittest.TestCase):
     core = ping_script_v3.ping_script()
     success_output, error_output = core.ping_command(self.host, self.count)
     core.Executor(success_output, error_output, report=False)
+
+class testpingscript_parameterized(unittest.TestCase):
+  @parameterized.expand([('linux', True), ('Win32', True)])
+  @flagsaver.flagsaver(host='apple.com')
+  @flagsaver.flagsaver(report=report)
+  @mock.patch.object(ping_script_v3, 'os_finder', autospec=True)
+  def testPingCommandCheck(self, os_value, report_param, mock_os_finder):
+    mock_os_finder.return_value = os_value
+    core = ping_script_v3.ping_script()
+    success_output, error_output = core.ping_command('google.com', 4)
+    core.Executor(success_output, error_output, report_param)
+    self.assertIn('packets transmitted', success_output)
+    self.assertTrue(mock_os_finder.called)
 
 if __name__ == '__main__':
   unittest.main(testRunner=HTMLTestRunner(output='python-ping-script'))
