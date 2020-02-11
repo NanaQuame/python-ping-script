@@ -25,7 +25,11 @@ import unittest
 FLAGS = flags.FLAGS
 FLAGS.host = 'google.com'
 report = ('/home/nanaquame/Desktop/coding/ping_dir/'
-                    'python-ping-script/mock_data/test_file')
+          'python-ping-script/mock_data/test_file')
+
+fs = fake_fs.FakeFilesystem()
+fs_os = fake_fs.FakeOsModule(fs)
+fs_open = fake_fs.FakeFileOpen(fs)
 
 class testPingScript(unittest.TestCase):
   """ Tests for python-ping-script. """
@@ -34,10 +38,6 @@ class testPingScript(unittest.TestCase):
     super(testPingScript, self).setUp()
     self.host = 'amazon.com'
     self.count = 4
-
-    self.fs = fake_fs.FakeFilesystem()
-    self.fs_os = fake_fs.FakeOsModule(self.fs)
-    self.fs_open = fake_fs.FakeFileOpen(self.fs)
 
   def test_os_finder_Success(self):
     os_check = ping_script_v3.os_finder()
@@ -67,7 +67,7 @@ class testPingScript(unittest.TestCase):
 
     success_output, error_output = core.ping_command(self.host, self.count)
     with self.assertRaises(ping_script_v3.FileError):
-      core.WriteReport(self.fs_open, success_output, error_output, 
+      core.WriteReport(fs_open, success_output, error_output, 
                       report_file)
     self.assertTrue(mock_file_open.called)
 
@@ -80,7 +80,7 @@ class testPingScript(unittest.TestCase):
 
     success_output, error_output = core.ping_command(self.host, self.count)
     with self.assertRaises(ping_script_v3.FileError):
-      core.WriteReport(self.fs_open, success_output, error_output, 
+      core.WriteReport(fs_open, success_output, error_output, 
                       report_file)
       self.assertTrue(mock_file_open.called)
 
@@ -93,28 +93,38 @@ class testPingScript(unittest.TestCase):
 
     success_output, error_output = core.ping_command(self.host, self.count)
     with self.assertRaises(ping_script_v3.FileError):
-      core.WriteReport(self.fs_open, success_output, error_output, 
+      core.WriteReport(fs_open, success_output, error_output, 
                       report_file)
     self.assertTrue(mock_file_open.called)
 
   def testReportSuccess(self):
     core = ping_script_v3.ping_script()
 
-    self.fs.create_file('report_file')
+    fs.create_file('report_file')
     
     success_output, error_output = core.ping_command(self.host, self.count)
-    core.write_file(success_output, error_output, 'report_file', self.fs_open)
+    core.write_file(success_output, error_output, 'report_file', fs_open)
     
-    assert self.fs_os.path.exists('report_file')
-    with self.fs_open('report_file', 'r') as read_file:
+    assert fs_os.path.exists('report_file')
+    with fs_open('report_file', 'r') as read_file:
       read_contents = read_file.read()
-    self.assertIn('ping', read_contents)
+    self.assertIn('packets transmitted', read_contents)
+
+  def testReportWritesErrorOutput(self):
+    core = ping_script_v3.ping_script()
+    fs.create_file(report)
+    success_output, error_output = ('', 'ping: youtube.com: Name or ' 
+                                      'service not known')
+    core.write_file(success_output, error_output, report, fs_open)
+    with fs_open(report, 'r') as file:
+      contents = file.read()
+    self.assertIn('Name or service not known', contents)
 
   @flagsaver.flagsaver(report='test_file')
   def testExecutor(self):
     core = ping_script_v3.ping_script()
     success_output, error_output = core.ping_command(self.host, self.count)
-    core.Executor(success_output, error_output, report=False)
+    core.Executor(success_output, error_output, report=False, open_lib=open)
   
   def tearDown(self):
     super(testPingScript, self).tearDown()
@@ -125,15 +135,20 @@ class testpingscript_parameterized(unittest.TestCase):
     super(testpingscript_parameterized, self).setUp()
 
   @parameterized.expand([('linux', True), ('Win32', True)])
-  @flagsaver.flagsaver(host='apple.com')
+  @flagsaver.flagsaver(host='cisco.com')
   @flagsaver.flagsaver(report=report)
   @mock.patch.object(ping_script_v3, 'os_finder', autospec=True)
   def testPingCommandCheck(self, os_value, report_param, mock_os_finder):
+    if fs_os.path.exists(report):
+      fs_os.remove(report)
+
+    fs.create_file(report)
     mock_os_finder.return_value = os_value
     core = ping_script_v3.ping_script()
-    success_output, error_output = core.ping_command('google.com', 4)
-    core.Executor(success_output, error_output, report_param)
+    success_output, error_output = core.ping_command('cisco.com', 4)
+    core.Executor(success_output, error_output, report, fs_open)
     self.assertIn('packets transmitted', success_output)
+    self.assertEqual(len(error_output), 0)
     self.assertTrue(mock_os_finder.called)
 
   def tearDown(self):

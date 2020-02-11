@@ -17,11 +17,14 @@ from absl import flags
 
 FLAGS = flags.FLAGS
 
-flags.DEFINE_string('host', None, 'Website to ping')
+flags.DEFINE_string('host', None, 'host to ping')
 flags.DEFINE_integer('count', 4, 'number of icmp packets to send')
 flags.DEFINE_string('report', None, 'location to store ping result')
 
 flags.mark_flag_as_required('host')
+
+# TODO (nanaquame) Implement nmap-cli for additional functionality
+# TODO (nanaquame) Add inetutils capabilities like traceroute and others
 
 class Error(Exception):
   """Container class for exception in this module."""
@@ -48,10 +51,8 @@ def os_finder():
 
   if (not os_check) or (os_check == None):
     raise ValueError('Unknown OS Type returned.')
-
   elif os_check in oses.os_list:
       return os_check
-  
   else:
     raise ValueError('Incompatible Operating Sytems: %s', os_check)
 
@@ -65,7 +66,6 @@ class ping_script:
     """Run os_finder function to find out specific os and run command"""
 
     os_result = os_finder()
-    FLAGS(sys.argv)
 
     if os_result.startswith(('linux2', 'linux', 'Linux', 'Darwin')):
       logging.info('Executing script on a %s system', os_result)
@@ -112,12 +112,12 @@ class ping_script:
     # to STDOUT instead of exiting program.
 
 
-  def Executor(self, success_output, error_output, report):
+  def Executor(self, success_output, error_output, report, open_lib):
     """call all other functions in the script."""
     FLAGS(sys.argv)
     if report:
       core = ping_script()
-      core.WriteReport(open, success_output, error_output, report)
+      core.WriteReport(open_lib, success_output, error_output, report)
 
     else:
       logging.info('Writing report to stdout...')
@@ -132,10 +132,7 @@ def main(argv):
   core = ping_script()
   success_output, error_output = core.ping_command(FLAGS.host, FLAGS.count)
 
-  core.Executor(success_output, error_output, FLAGS.report)
-
-# TODO (nanaquame) Implement nmap-cli for additional functionality
-# TODO (nanaquame) Add inetutils capabilities like traceroute and others
+  core.Executor(success_output, error_output, FLAGS.report, open)
 
 if __name__ == "__main__":
     app.run(main)
