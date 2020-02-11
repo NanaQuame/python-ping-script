@@ -115,8 +115,15 @@ class testPingScript(unittest.TestCase):
     core = ping_script_v3.ping_script()
     success_output, error_output = core.ping_command(self.host, self.count)
     core.Executor(success_output, error_output, report=False)
+  
+  def tearDown(self):
+    super(testPingScript, self).tearDown()
+    mock.patch.stopall()
 
 class testpingscript_parameterized(unittest.TestCase):
+  def setUp(self):
+    super(testpingscript_parameterized, self).setUp()
+
   @parameterized.expand([('linux', True), ('Win32', True)])
   @flagsaver.flagsaver(host='apple.com')
   @flagsaver.flagsaver(report=report)
@@ -128,6 +135,10 @@ class testpingscript_parameterized(unittest.TestCase):
     core.Executor(success_output, error_output, report_param)
     self.assertIn('packets transmitted', success_output)
     self.assertTrue(mock_os_finder.called)
+
+  def tearDown(self):
+    super(testpingscript_parameterized, self).tearDown()
+    mock.patch.stopall()
 
 if __name__ == '__main__':
   unittest.main(testRunner=HTMLTestRunner(output='python-ping-script'))
