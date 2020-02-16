@@ -40,25 +40,24 @@ def os_finder():
   """Check for which operating system this script is running on."""
   os_check = sys.platform
 
-  if (not os_check) or (os_check is None):
+  if (not os_check) or (os_check is None) or (os_check not in oses.os_list):
     raise ValueError('Unknown OS Type returned.')
-  if os_check in oses.os_list:
-      return os_check
-  else:
-    raise ValueError('Incompatible Operating Sytems: %s' %os_check)
+
+  return os_check
 
 def ping_command(host, count):
   """Run os_finder function to find out specific os and run command"""
 
   os_result = os_finder()
+  print(os_result)
 
   if os_result.startswith(('linux2', 'linux', 'Linux', 'Darwin')):
     logging.info('Executing script on a %s system', os_result)
     pingResult = ['ping', host, "-c", "{}".format(count)]
 
-  if os_result.startswith(('Windows', 'Win32')):
-    logging.info('Executing script on Windows sys')
-    pingResult = ["ping", "-n", "1", "-l", "1", "-w", str(count)]
+  if os_result.startswith(('Windows', 'win32')):
+    logging.info('Executing script on Windows system')
+    pingResult = (f'ping {host} -n {count}')
 
   ping_execute = subprocess.Popen(pingResult, stdout=subprocess.PIPE,
                                   stderr=subprocess.PIPE)
