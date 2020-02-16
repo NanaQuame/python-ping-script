@@ -60,7 +60,7 @@ class testPingScript(unittest.TestCase):
     assert fs_os.path.exists(report)
     with fs_open(report, 'r') as read_file:
       read_contents = read_file.read()
-    self.assertIn('packets transmitted', read_contents)
+    self.assertIn('packets', read_contents)
 
   def testReportWritesErrorOutput(self):
     core = netutil.ping_script()
