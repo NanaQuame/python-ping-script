@@ -49,7 +49,6 @@ def ping_command(host, count):
   """Run os_finder function to find out specific os and run command"""
 
   os_result = os_finder()
-  print(os_result)
 
   if os_result.startswith(('linux2', 'linux', 'Linux', 'Darwin')):
     logging.info('Executing script on a %s system', os_result)
@@ -65,10 +64,13 @@ def ping_command(host, count):
   success_output = ping_execute.stdout.read().decode("utf-8")
   error_output = ping_execute.stderr.read().decode("utf-8")
 
+  windows_errors = ['could not find host', 'transmit failed']
+
   if not success_output or error_output:
     raise UnknownRequest('Unable to complete request. Verify host address.')
-  if ('transmit failed' or 'could not find host') in success_output:
-    raise UnknownRequest('Incorrect host information on Windows...')
+  for error in windows_errors:
+    if error in success_output:
+      raise UnknownRequest('Unable to complete request. Verify host address.')
 
   return success_output, error_output
 

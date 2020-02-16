@@ -128,11 +128,11 @@ class testpingscript_diff_os_parameterized(unittest.TestCase):
     fs.create_file(report)
     mock_os_finder.return_value = os_value
 
-    success_output, error_output = ('packets sent = 4', '')
+    success_output, error_output = ('packets sent = 4, latency = 6', '')
     netutil.Executor(success_output, error_output, report, fs_open, contents)
     with fs_open(report, 'r') as file:
       report_contents = file.read()
-    self.assertIn('packets', report_contents)
+    self.assertIn('latency', report_contents)
     self.assertEqual(len(error_output), 0)
 
   def tearDown(self):
