@@ -67,6 +67,8 @@ def ping_command(host, count):
 
   if not success_output or error_output:
     raise UnknownRequest('Unable to complete request. Verify host address.')
+  if ('transmit failed' or 'could not find host') in success_output:
+    raise UnknownRequest('Incorrect host information on Windows...')
 
   return success_output, error_output
 
