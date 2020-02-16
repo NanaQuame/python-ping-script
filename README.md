@@ -1,4 +1,4 @@
-# netutils
+# netutil
 A script to ping a host, test bandwidth (upload/download) with option to write output to a report. 
 
 Features:
