@@ -10,9 +10,9 @@ Note: To use speedtest functionality, make sure to install speedtest-cli tool.
 
 - Provides option to write output of script to report using --report flag during execution.
 - Provides robust error-handling at various stages of execution including:
-    a. Raises value error for undetected/unsupported OS.
-    b. Verifies that WriteReport method is able to access provided file path   location by checking for various os-level                                    errors.
-    c. Error-handling for when ping_Result does not yield any output (success or error). Generally attributed to invalid hostname or format.
+    - Raises value error for undetected/unsupported OS.
+    - Verifies that WriteReport method is able to access provided file path   location by checking for various os-level errors.
+    - Error-handling for when ping_Result does not yield any output (success or error). Generally attributed to invalid hostname or format.
 
 Tests:
 - Tests currently cover about 90% of all lines in netutil.py
