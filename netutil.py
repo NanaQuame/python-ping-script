@@ -22,6 +22,7 @@ FLAGS = flags.FLAGS
 flags.DEFINE_string('host', None, 'host to ping')
 flags.DEFINE_integer('count', 4, 'number of icmp packets to send')
 flags.DEFINE_string('report', None, 'location to store ping result')
+flags.DEFINE_boolean('speedtest', False, 'run speedtest-cli')
 
 flags.mark_flag_as_required('host')
 
@@ -37,7 +38,13 @@ class UnknownRequest(Exception):
 
 
 def os_finder():
-  """Check for which operating system this script is running on."""
+  """Check for which operating system this script is running on.
+     Returns:
+      os_check: output of sys.platform
+
+     Raises:
+      ValueError: if sys.platform returns no or unsupported os.
+  """
   os_check = sys.platform
 
   if (not os_check) or (os_check is None) or (os_check not in oses.os_list):
@@ -46,11 +53,26 @@ def os_finder():
   return os_check
 
 def ping_command(host, count):
-  """Run os_finder function to find out specific os and run command"""
+  """Runs ping command for the specific os returned. 
+    
+     Args:
+      host: the host address to ping.
+      count: number of times to send the ping request.
+    
+     Returns:
+      success_error: output of a successful ping.
+      error_output: output of an unsuccessful ping.
+
+     Raises:
+      UnknownRequest: If neither success_error or error_output. For Windows, 
+                      a failed ping due to invalid host information will still
+                      be sent to success_output. Check for strings referencing
+                      failed pings instead of proceeding as usual.
+  """
 
   os_result = os_finder()
 
-  if os_result.startswith(('linux2', 'linux', 'Linux', 'Darwin')):
+  if os_result.startswith(('linux2', 'linux', 'Linux', 'darwin')):
     logging.info('Executing script on a %s system', os_result)
     pingResult = ['ping', host, "-c", "{}".format(count)]
 
@@ -67,7 +89,7 @@ def ping_command(host, count):
   windows_errors = ['could not find host', 'transmit failed']
 
   if not success_output or error_output:
-    raise UnknownRequest('Unable to complete request. Verify host address.')
+    raise UnknownRequest('Request incomplete. Verify host address and connection.')
   for error in windows_errors:
     if error in success_output:
       raise UnknownRequest('Unable to complete request. Verify host address.')
@@ -76,6 +98,11 @@ def ping_command(host, count):
 
 
 def GetUploadDownloadSpeed():
+  """Run speedtest-cli tool for Various bandwidth and ISP information.
+     Returns:
+       output: A prettytable object showing ISP Provider, External IP Address,
+               Latency, Download and Upload.
+  """
   os.system('speedtest --json --secure > speedtest_report')
   with open('speedtest_report') as file:
     data = json.load(file)
@@ -87,46 +114,59 @@ def GetUploadDownloadSpeed():
 
   output = PrettyTable()
   output.field_names = [
-    'ISP Provider', 'External IP Address', 'Latency', 'Download', 'Upload']
+    'ISP Provider', 'External IP Address', 'Latency ⬌', 'Download ⬇', 'Upload ⬆']
   output.add_row([isp, ip, latency, download, upload])
 
   return (output)
-  
-class ping_script:
-  """Based on os, host, count and other parameters, execute the ping script
-     and write the output to a report file or stdout."""
-  def __init__(self):
-    pass
 
-  def write_file(self, success_output, error_output, speed, report, open_lib):
-    with open_lib(report, 'a') as filer:
-        if success_output:
-          filer.write(success_output)
-        if error_output:
-          filer.write(error_output)
-        if speed:
-          filer.write(speed)
 
-  def WriteReport(self, open_lib, success_output, error_output, report, speed):
-    logging.info('Writing report to %s...', report)
+def WriteReport(open_lib, success_output, error_output, report, speed):
+  """Open report location to write report to file path or write.
+      Args:
+        success_output: successful output from ping command.
+        error_output: error output from ping command (if any)
+        speed: speedtest output to write
+        report: file path for writing output from commands.
+        open_lib: library for opening file. Used for testing.
+  """
+  with open_lib(report, 'a') as filer:
+    if success_output:
+      filer.write(success_output)
+    if error_output:
+      filer.write(error_output)
+    if speed:
+      filer.write(speed)
+  logging.info(f'report written to {report}')
 
+  # TODO (nanaquame) Implement continuation mechanism if file location not found by printing
+  # to STDOUT instead of exiting program.
+
+
+def Executor(success_output, error_output, report, open_lib, speedtest):
+  """call all other functions in the script.
+     
+     Args:
+      success_output: successful output from ping command.
+      error_output: error output from ping command (if any)
+      speed: speedtest output to write
+      report: file path for writing output from commands.
+      open_lib: library for opening file. Used for testing.
+     
+     Raises:
+      FileError: If OS error during file access to write report.
+  """
+  FLAGS(sys.argv)
+  if speedtest:
+    speed = str(GetUploadDownloadSpeed())
+  else:
+    speed = ''
+
+  if report:
+    logging.debug(f'writing report to {report}')
     try:
-      core = ping_script()
-      core.write_file(success_output, error_output, speed, report, open_lib)
-      logging.info('report write complete...')
-
+      WriteReport(open_lib, success_output, error_output, report, speed)
     except (FileNotFoundError, IsADirectoryError, PermissionError) as err:
       raise FileError(f'Unable to write to report to file path. Details: {err}')
-    # TODO (nanaquame) Implement continuation mechanism if file location not found by printing
-    # to STDOUT instead of exiting program.
-
-
-def Executor(success_output, error_output, report, open_lib, speed):
-  """call all other functions in the script."""
-  FLAGS(sys.argv)
-  if report:
-    core = ping_script()
-    core.WriteReport(open_lib, success_output, error_output, report, speed)
 
   else:
     logging.info('Writing report to stdout...')
@@ -134,7 +174,7 @@ def Executor(success_output, error_output, report, open_lib, speed):
       sys.stdout.write(success_output)
     if error_output:
       sys.stdout.write(error_output)
-    if speed:
+    if speedtest:
       sys.stdout.write(speed)
 
 
@@ -142,8 +182,7 @@ def main(argv):
   FLAGS(sys.argv)
   try:
     success_output, error_output = ping_command(FLAGS.host, FLAGS.count)
-    speed_result = str(GetUploadDownloadSpeed())
-    Executor(success_output, error_output, FLAGS.report, open, speed_result)
+    Executor(success_output, error_output, FLAGS.report, open, FLAGS.speedtest)
   except (ValueError, FileError, UnknownRequest) as err:
     sys.exit(err)
 

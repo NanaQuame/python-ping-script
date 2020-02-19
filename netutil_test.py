@@ -26,12 +26,13 @@ fs_open = fake_fs.FakeFileOpen(fs)
 with open('speedtest_report', 'r') as file:
   contents = file.read()
 
+
 class testPingScript(unittest.TestCase):
   """ Tests for python-ping-script. """
 
   def setUp(self):
     super(testPingScript, self).setUp()
-    self.host = 'amazon.com'
+    self.host = 'linux.com'
     self.count = 4
 
   def test_os_finder_Success(self):
@@ -52,33 +53,35 @@ class testPingScript(unittest.TestCase):
     with self.assertRaises(netutil.UnknownRequest):
       netutil.ping_command('youtube.org', self.count)
 
+  @flagsaver.flagsaver(speedtest=False)
   def testReportSuccess(self):
-    core = netutil.ping_script()
+    if fs_os.path.exists(report):
+      fs_os.remove(report)
     fs.create_file(report)
     success_output, error_output = netutil.ping_command(self.host, self.count)
-    core.WriteReport(fs_open, success_output, error_output, report, contents)
-    assert fs_os.path.exists(report)
+    netutil.Executor(success_output, error_output, report, fs_open, False)
     with fs_open(report, 'r') as read_file:
       read_contents = read_file.read()
     self.assertIn('statistics', read_contents)
 
   def testReportWritesErrorOutput(self):
-    core = netutil.ping_script()
     if fs_os.path.exists(report):
       fs_os.remove(report)
     fs.create_file(report)
     success_output, error_output = ('', 'ping: youtube.com: Name or ' 
                                       'service not known')
-    core.WriteReport(fs_open, success_output, error_output, report, contents)
+    netutil.WriteReport(fs_open, success_output, error_output, report, contents)
     with fs_open(report, 'r') as file:
       read_contents = file.read()
     self.assertIn('Name or service not known', read_contents)
 
-  @flagsaver.flagsaver(report='test_file')
-  def testExecutor(self):
+  @flagsaver.flagsaver(speedtest=True)
+  @flagsaver.flagsaver(report=True)
+  def testExecutorSuccess(self):
+    fs.create_file(report)
     success_output, error_output = netutil.ping_command(self.host, self.count)
-    netutil.Executor(success_output, error_output, report=False, open_lib=open,
-                      speed=contents)
+    netutil.Executor(success_output, error_output, report, fs_open, False)
+    self.assertTrue(len(report)>1)
 
   def testGetSpeedTestData(self):
     output = netutil.GetUploadDownloadSpeed()
@@ -95,18 +98,20 @@ class testWriteReportRaisesExceptions_parameterized(unittest.TestCase):
   
   @parameterized.expand([('PermissionError'), ('FileNotFoundError'), 
                        ('IsADirectoryError')])
+  @flagsaver.flagsaver(speedtest=True)
   @flagsaver.flagsaver(host='linux.com')
-  @flagsaver.flagsaver(report=report)
-  @mock.patch.object(netutil.ping_script, 'write_file', autospec=True)
+  @flagsaver.flagsaver(report=True)
+  @mock.patch.object(netutil, 'WriteReport', autospec=True)
   def testWriteReport_(self, exception_value, mock_write_file):
     mock_write_file.side_effect = eval(exception_value)
-    report_file = FLAGS.report
-    core = netutil.ping_script()
+    if fs_os.path.exists(report):
+      fs_os.remove(report)
+    fs.create_file(report)
+    report_file = report
 
     success_output, error_output = netutil.ping_command('linux.com', 4)
     with self.assertRaises(netutil.FileError):
-      core.WriteReport(fs_open, success_output, error_output, 
-                      report_file, contents)
+      netutil.Executor(success_output, error_output, report, fs_open, True)
     self.assertTrue(mock_write_file.called)
   
   def tearDown(self):
@@ -119,8 +124,9 @@ class testpingscript_diff_os_parameterized(unittest.TestCase):
     super(testpingscript_diff_os_parameterized, self).setUp()
 
   @parameterized.expand([('linux', True), ('win32', True)])
+  @flagsaver.flagsaver(speedtest=True)
   @flagsaver.flagsaver(host='cisco.com')
-  @flagsaver.flagsaver(report=report)
+  @flagsaver.flagsaver(report=True)
   @mock.patch.object(netutil, 'os_finder', autospec=True)
   def testPingCommandCheck(self, os_value, report_param, mock_os_finder):
     if fs_os.path.exists(report):
@@ -129,7 +135,7 @@ class testpingscript_diff_os_parameterized(unittest.TestCase):
     mock_os_finder.return_value = os_value
 
     success_output, error_output = ('packets sent = 4, latency = 6', '')
-    netutil.Executor(success_output, error_output, report, fs_open, contents)
+    netutil.Executor(success_output, error_output, report, fs_open, True)
     with fs_open(report, 'r') as file:
       report_contents = file.read()
     self.assertIn('latency', report_contents)
