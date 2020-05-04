@@ -34,7 +34,9 @@ Tests:
 - Tests currently cover about 90% of all lines in netutil.py
 - Includes parameterized tests to reduce code duplication.
 
-Sample output for flag values:
+Expected output: python3 netutil.py --host=4.2.2.2 --speedtest
 ![Alt text](https://github.com/NanaQuame/python-ping-script/blob/master/speedtest-flag.png "--speedtest output")
+
+Expected output: python3 netutil.py --host=4.2.2.2 --traceroute
 ![Alt text](https://github.com/NanaQuame/python-ping-script/blob/master/traceroute-flag.png "--traceroute output")
 
