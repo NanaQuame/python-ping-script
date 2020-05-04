@@ -16,12 +16,11 @@ Features:
 Note: use '--help' on CLI for more information on CLI flags.
 
 Pip Packages to install:
-
-- absl-py <https://pypi.org/project/absl-py/>
-- hurry.filesize <https://pypi.org/project/hurry.filesize/>
-- prettytable <https://pypi.org/project/PrettyTable/>
-- termgraph <https://pypi.org/project/termgraph/>
-- speedtest-cli <https://pypi.org/project/speedtest-cli/>
+  - absl-py <https://pypi.org/project/absl-py/>
+  - hurry.filesize <https://pypi.org/project/hurry.filesize/>
+  - prettytable <https://pypi.org/project/PrettyTable/>
+  - termgraph <https://pypi.org/project/termgraph/>
+  - speedtest-cli <https://pypi.org/project/speedtest-cli/>
 
 - Provides option to write output of script to report using --report flag during execution.
 - Provides robust error-handling at various stages of execution including:
