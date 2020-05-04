@@ -142,7 +142,8 @@ def GetBandwidthData() -> (str, str):
 
 def traceroute_summary(host: str) -> None:
   if 'darwin' in sys.platform:
-    return 'Traceroute summarization not available on MacOS at the moment.'
+    logging.info('Traceroute summarization not available on MacOS at the moment.')
+    return ''
 
   logging.info(f'Starting traceroute to {host}...')
   os.system(f'traceroute {host} > traceroute_result')
@@ -181,14 +182,26 @@ def traceroute_summary(host: str) -> None:
     average_round_trip_time = round(sum(round_trip_times)/len(round_trip_times), 2)
 
   print(f'\nDNS Lookup for {host} returned {ip_of_host} as destination address.\n'
-        f'{responding_routers} responding routers on this path '
+        f'{responding_routers} responding router(s) on this path '
         f'with an average round trip time of {average_round_trip_time} ms\n')
 
   print('IP address to Name Server mapping for responding routers on the path\n')
+
+  dns_table = PrettyTable()
+  dns_table.field_names = ['IP Address', 'DNS resolution']
+
   for router in list_of_responding_routers:
-    dns_lookup = os.system(f'getent hosts {router}')
-    if not isinstance(dns_lookup, int):
-      print(dns_lookup)
+    os.system(f'getent hosts {router} > dns_table_build')
+    with open('dns_table_build', 'r') as file:
+      table_content = file.readlines()
+    
+    for line in table_content:
+      split_dns_info = line.split()
+      if not isinstance(split_dns_info[1], int):
+        dns_table.add_row([router, split_dns_info[1]])
+        dns_table.add_row(['', ''])
+    
+  print(dns_table)
 
   return ''
 
