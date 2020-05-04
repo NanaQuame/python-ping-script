@@ -1,19 +1,27 @@
 # netutil
-A script to ping a host, test bandwidth (upload/download) with option to write output to a report. 
+
+A script to gather bandwidth information (Download, upload and latency) utilizing speedtest.net CLI tools, provide graphical comparison between local & graphical speeds, and provides a traceroute summary.
 
 Features:
-- Accepts parameters for ping(hostname, count) via CLI flag values.
-- Ping host for Windows or Unix based systems.
-- Leverages [https://github.com/sivel/speedtest-cli] for checking bandwdith information. Speedtest result outputs information for ISP Provider, External IP Address, Latency, Download and upload speeds at the time of execution. To use this feature, add the --speedtest CLI flag during script execution.
 
-Note: To use speedtest functionality, make sure to install speedtest-cli tool following the instructions from link above.
+- Leverages [<https://github.com/sivel/speedtest-cli]> for checking internet bandwdith. Speedtest result outputs information for ISP Provider, External IP Address, Latency, Download and upload speeds at the time of execution.
+- Provides a graphical comparison of your local speeds (Downloads & Upload) against global averages and the top ten speeds from ranking countries. <https://www.speedtest.net/global-index>. Global speeds are computed on a monthly basis this script is updated accordingly.
+- Provides a summary of a traceroute by with:
+  - How many routers on the path responded to ICMP (or UDP) packets
+  - Utilizes 'getent hosts' to retrieve entries from the databases as specified in your Name Service Switch configuration in /etc/nsswitch.conf. Essentially it performs DNS resolution for the IP responding routers' IP address uziliting your local databases, before consulting DNS resolver if necessary. No need to query your DNS clients if that's not required.
+
+- Accepts parameters for ping(hostname, count, speedtest, tracroute) via CLI flag values.
+- Executes on both Unix and Windows systems.
+
+Note: use '--help' on CLI for more information on CLI flags.
 
 - Provides option to write output of script to report using --report flag during execution.
 - Provides robust error-handling at various stages of execution including:
-    - Raises value error for undetected/unsupported OS.
-    - Verifies that WriteReport method is able to access provided file path   location by checking for various os-level errors.
+  - Raises value error for undetected/unsupported OS.
+    - Verifies that WriteReport method is able to access provided file path location by checking for various os-level errors.
     - Error-handling for when ping_Result does not yield any output (success or error). Generally attributed to invalid hostname or format.
 
 Tests:
+
 - Tests currently cover about 90% of all lines in netutil.py
 - Includes parameterized tests to reduce code duplication.
