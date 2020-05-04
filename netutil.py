@@ -74,7 +74,7 @@ def ping_command(host: str, count: int) -> (str, str):
 
   if os_result.startswith(('linux2', 'linux', 'Linux', 'darwin')):
     logging.info('Executing script on a unix system')
-    pingResult = ['ping', '--quiet', host, "-c", "{}".format(count)]
+    pingResult = ['ping', host, "-c", "{}".format(count)]
 
   if os_result.startswith(('Windows', 'win32')):
     logging.info('Executing script on Windows system')
@@ -100,6 +100,7 @@ def GetBandwidthData() -> (str, str):
        output: A prettytable object showing ISP Provider, External IP Address,
                Latency, Download and Upload.
   """
+  logging.info('Starting speedtest-cli...')
   os.system('speedtest-cli --json --secure > speedtest_report')
   with open('speedtest_report') as file:
     data = json.load(file)
@@ -117,7 +118,7 @@ def GetBandwidthData() -> (str, str):
   with open('graph_content.csv', 'w+', newline='') as file:
     writer = csv.writer(file)
     
-    writer.writerow(['Local speed', int(download[:2:]), int(upload[:2:])])
+    writer.writerow(['Local speed', int(download.strip('M')), int(upload.strip('M'))])
     writer.writerow(['Global Average', 74, 40])
     writer.writerow(['Singapore', 197, 208])
     writer.writerow(['Hong Kong', 168, 164])
@@ -141,6 +142,9 @@ def GetBandwidthData() -> (str, str):
 
 
 def traceroute_summary(host: str) -> None:
+  if 'darwin' in sys.platform:
+    return 'Traceroute summarization not available on MacOS at the moment.'
+
   logging.info(f'Starting traceroute to {host}...')
   os.system(f'traceroute {host} > traceroute_result')
 
@@ -169,12 +173,12 @@ def traceroute_summary(host: str) -> None:
     list_of_responding_routers.append(update_split_line[1])
     responding_routers += 1
 
-    latencies_per_route = []
-    latencies_per_route.append(float(update_split_line[2].strip('ms')))
-    latencies_per_route.append(float(update_split_line[3].strip('ms')))
-    latencies_per_route.append(float(update_split_line[4].strip('ms')))
+    for string in update_split_line:
+      try:
+        round_trip_times.append(float(string))
+      except ValueError:
+        continue
     
-    round_trip_times.extend(latencies_per_route)
     average_round_trip_time = round(sum(round_trip_times)/len(round_trip_times), 2)
 
   print(f'\nDNS Lookup for {host} returned {ip_of_host} as destination address.\n'
@@ -283,6 +287,7 @@ def main(argv):
     Executor(success_output, error_output, FLAGS.report, open, FLAGS.speedtest, FLAGS.traceroute, FLAGS.host)
   except (ValueError, FileError, UnknownRequest) as err:
     sys.exit(err)
+  logging.info('Script execution complete!')
 
 if __name__ == "__main__":
     app.run(main)
