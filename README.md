@@ -1,6 +1,6 @@
 # netutil
 
-A script to gather bandwidth information (Download, upload and latency) utilizing speedtest.net CLI tools, provide graphical comparison between local & graphical speeds, and provides a traceroute summary.
+A script to gather bandwidth information (Download, upload and latency) utilizing speedtest.net CLI tools, provide graphical comparison between local & global speeds, and provides a traceroute summary.
 
 Features:
 
@@ -16,11 +16,12 @@ Features:
 Note: use '--help' on CLI for more information on CLI flags.
 
 Pip Packages to install:
-  - absl-py <https://pypi.org/project/absl-py/>
-  - hurry.filesize <https://pypi.org/project/hurry.filesize/>
-  - prettytable <https://pypi.org/project/PrettyTable/>
-  - termgraph <https://pypi.org/project/termgraph/>
-  - speedtest-cli <https://pypi.org/project/speedtest-cli/>
+
+- absl-py <https://pypi.org/project/absl-py/>
+- hurry.filesize <https://pypi.org/project/hurry.filesize/>
+- prettytable <https://pypi.org/project/PrettyTable/>
+- termgraph <https://pypi.org/project/termgraph/>
+- speedtest-cli <https://pypi.org/project/speedtest-cli/>
 
 - Provides option to write output of script to report using --report flag during execution.
 - Provides robust error-handling at various stages of execution including:
@@ -32,10 +33,3 @@ Tests:
 
 - Tests currently cover about 90% of all lines in netutil.py
 - Includes parameterized tests to reduce code duplication.
-
-Expected output: python3 netutil.py --host=4.2.2.2 --speedtest
-![Alt text](https://github.com/NanaQuame/python-ping-script/blob/master/speedtest-flag.png "--speedtest output")
-
-Expected output: python3 netutil.py --host=4.2.2.2 --traceroute
-![Alt text](https://github.com/NanaQuame/python-ping-script/blob/master/traceroute-flag.png "--traceroute output")
-

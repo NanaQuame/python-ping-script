@@ -1,6 +1,6 @@
 """A script to gather bandwidth information (Download, upload and latency)
 utilizing speedtest.net CLI tools, provide graphical comparison between local 
-& graphical speeds, and provides a traceroute summary.
+& global speeds, and provides a traceroute summary.
 """
 import csv
 import datetime
