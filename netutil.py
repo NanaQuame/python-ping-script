@@ -2,7 +2,6 @@
 utilizing speedtest.net CLI tools, provide graphical comparison between local 
 & graphical speeds, and provides a traceroute summary.
 """
-import terminal_banner
 import csv
 import datetime
 import ipaddress
