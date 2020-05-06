@@ -4,7 +4,7 @@ A script to gather bandwidth information (Download, upload and latency) utilizin
 
 Features:
 
-- Leverages [<https://github.com/sivel/speedtest-cli]> for checking internet bandwdith. Speedtest result outputs information for ISP Provider, External IP Address, Latency, Download and upload speeds at the time of execution.
+- Leverages [<https://github.com/sivel/speedtest-cli]> for checking internet bandwdith. Speedtest result outputs information for Internet Service Provider, External IP Address, Latency, Download and upload speeds at the time of execution.
 - Provides a graphical comparison of your local speeds (Downloads & Upload) against global averages and the top ten speeds from ranking countries. <https://www.speedtest.net/global-index>. Global speeds are computed on a monthly basis this script is updated accordingly.
 - Provides a summary of a traceroute by with:
   - How many routers on the path responded to ICMP (or UDP) packets
