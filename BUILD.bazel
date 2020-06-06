@@ -1,0 +1,28 @@
+package(default_visibility = ["//visibility:public"])
+
+
+load("@rules_python//python:defs.bzl", "py_binary", "py_library", "py_test")
+load("@rules_python//python:pip.bzl", "pip_import")
+load("@subpar//:subpar.bzl", "par_binary")
+
+py_binary(
+    name = "netutil",
+    srcs = ["netutil.py"],
+    srcs_version = "PY3",
+    python_version = "PY3",
+)
+
+py_test(
+    name = "netutil_test",
+    srcs = ["netutil_test.py"],
+    srcs_version = "PY3",
+    python_version = "PY3",
+)
+
+par_binary(
+    name = "netutil_portable",
+    srcs = ["netutil.py", "netutil_test.py"],
+    main = "netutil.py",
+    srcs_version = "PY3",
+    python_version = "PY3",
+)

@@ -4,6 +4,7 @@ A script to gather bandwidth information (Download, upload and latency) utilizin
 
 Features:
 
+- Latest version of netutil is built with [<https://bazel.build]>, utilizing subpar for creating a self-contained executable version. Associated par file found in /_portable directory. NB: This executable is compiled with Python 3.6.9
 - Leverages [<https://github.com/sivel/speedtest-cli]> for checking internet bandwdith. Speedtest result outputs information for Internet Service Provider, External IP Address, Latency, Download and upload speeds at the time of execution.
 - Provides a graphical comparison of your local speeds (Downloads & Upload) against global averages and the top ten speeds from ranking countries. <https://www.speedtest.net/global-index>. Global speeds are computed on a monthly basis this script is updated accordingly.
 - Provides a summary of a traceroute by with:
@@ -16,6 +17,8 @@ Features:
 Note: use '--help' on CLI for more information on CLI flags.
 
 Pip Packages to install:
+
+NB: No need to install the following if using the par version of netutil.
 
 - absl-py <https://pypi.org/project/absl-py/>
 - hurry.filesize <https://pypi.org/project/hurry.filesize/>
