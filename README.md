@@ -38,7 +38,7 @@ Tests:
 - Includes parameterized tests to reduce code duplication.
 
 Sample output for: python3 netutil.py --host=4.2.2.2 --speedtest
-![Alt text](https://github.com/NanaQuame/python-ping-script/blob/master/speedtest-flag.png "--speedtest sample")
+![Alt text](https://github.com/NanaQuame/python-ping-script/blob/master/background_files/speedtest-flag.png "--speedtest sample")
 
 Sample output for: python3 netutil.py --host=4.2.2.2 --traceroute
-![Alt text](https://github.com/NanaQuame/python-ping-script/blob/master/traceroute-flag.png "--traceroute sample")
+![Alt text](https://github.com/NanaQuame/python-ping-script/blob/master/background_files/traceroute-flag.png "--traceroute sample")
